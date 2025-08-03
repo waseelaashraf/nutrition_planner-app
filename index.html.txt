@@ -455,20 +455,45 @@
                 });
             }
 
-            generateSuggestionBtn.addEventListener('click', () => {
+            generateSuggestionBtn.addEventListener('click', async () => {
                 const prompt = aiPromptEl.value;
                 if (!prompt) return;
                 
                 aiSuggestionTextEl.textContent = 'Generating...';
                 aiSuggestionEl.classList.remove('hidden');
 
-                setTimeout(() => {
-                    let suggestion = "Based on your request, here's a suggestion:\n\n**Recipe: Tofu Scramble**\n\n* **Ingredients:** 1 block firm tofu (crumbled), 1/2 tsp turmeric, 1/4 tsp black salt (kala namak), 1 tbsp nutritional yeast, mixed vegetables (onions, bell peppers, spinach).\n* **Instructions:** Sauté vegetables. Add crumbled tofu and spices. Cook until heated through. \n\nThis provides a high-protein, low-carb breakfast that aligns with a vegetarian preference.";
-                    if(prompt.toLowerCase().includes("vegetarian")) {
-                        suggestion = "For a vegetarian replacement for chicken in curry:\n\n**Option 1: Chickpeas**\n* **Why:** They hold their shape well and absorb the curry flavor beautifully. They are a great source of protein and fiber.\n* **How:** Add one can of drained and rinsed chickpeas in the last 10-15 minutes of cooking.\n\n**Option 2: Paneer**\n* **Why:** A classic choice. It's a firm cheese that doesn't melt, providing a satisfying texture.\n* **How:** Cube the paneer and pan-fry it until golden before adding it to the curry sauce."
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API call failed with status: ${response.status}`);
                     }
-                    aiSuggestionTextEl.textContent = suggestion;
-                }, 1500);
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const generatedText = result.candidates[0].content.parts[0].text;
+                        aiSuggestionTextEl.textContent = generatedText;
+                    } else {
+                        aiSuggestionTextEl.textContent = 'Sorry, the API response was empty or malformed. Please try again.';
+                    }
+                } catch (error) {
+                    console.error('Error calling the Gemini API:', error);
+                    aiSuggestionTextEl.textContent = 'Sorry, there was an error generating the suggestion. Please try again.';
+                }
             });
             
             sendFeedbackBtn.addEventListener('click', () => {
