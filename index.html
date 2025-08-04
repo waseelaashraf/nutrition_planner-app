@@ -67,10 +67,16 @@
 
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
         
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-[#3C3633]">NutriPlan AI</h1>
-            <p class="text-lg text-[#A4907C] mt-2">Your Personal AI-Powered Nutrition Planner</p>
-        </header>
+        <header class="p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white flex justify-between items-center">
+    <h1 class="text-3xl font-bold">AI Nutrition Planner</h1>
+    <!-- Client Selection Dropdown -->
+    <div class="flex items-center space-x-2">
+        <label for="client-select" class="font-medium text-lg">Select Client:</label>
+        <select id="client-select" class="p-2 rounded-lg bg-white text-gray-800 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+            <!-- Options will be populated by JavaScript -->
+        </select>
+    </div>
+</header>
 
         <div class="tabs border-b border-gray-200 mb-8">
             <div class="flex justify-center">
@@ -135,15 +141,30 @@
 
                             <!-- AI Recipe Assistant -->
                             <div>
-                                <h3 class="text-xl font-bold text-[#3C3633] mb-4">AI Recipe Assistant</h3>
+                                <h3 class="text-xl font-bold text-[#3C3633] mb-4">AI Nutrition Planner</h3>
+        <!-- Client Selection Dropdown -->
+        <div class="flex items-center space-x-2">
+            <label for="client-select" class="font-medium text-lg">Select Client:</label>
+            <select id="client-select" class="p-2 rounded-lg bg-white text-gray-800 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </div>
                                 <p class="text-gray-600 mb-4">Use the AI assistant to generate recipe ideas or find substitutions. For example, "Suggest a low-carb breakfast high in protein" or "Replace chicken with a vegetarian option in a curry."</p>
                                 <div class="space-y-4">
                                     <textarea id="aiPrompt" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8D7B68] focus:outline-none" rows="3" placeholder="Enter your prompt..."></textarea>
-                                    <button id="generateSuggestionBtn" class="btn-primary font-bold py-2 px-4 rounded-lg w-full">Generate Suggestion</button>
-                                    <div id="aiSuggestion" class="bg-[#FDFBF8] p-4 rounded-lg hidden">
-                                        <h4 class="font-bold text-[#3C3633]">AI Suggestion:</h4>
-                                        <p id="aiSuggestionText" class="text-gray-700 whitespace-pre-wrap"></p>
-                                    </div>
+                                    <button id="generateBtn" class="w-full py-3 px-6 bg-blue-500 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-600 transition transform hover:scale-105">
+    Generate Suggestion
+</button>
+                                    <!-- Loading Spinner and Status Message -->
+<div id="status-container" class="mt-6 flex flex-col items-center justify-center space-y-4">
+    <div id="loading-spinner" class="spinner hidden"></div>
+    <p id="status-message" class="text-gray-500 text-sm italic"></p>
+</div>
+
+<!-- API Response Output -->
+<div id="output" class="mt-6 p-6 bg-white rounded-2xl shadow-md transition-all duration-300">
+    <p id="response-text" class="text-gray-700"></p>
+</div>
                                 </div>
                             </div>
 
@@ -205,308 +226,266 @@
         </main>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const nutritionistTab = document.getElementById('nutritionistTab');
-            const clientTab = document.getElementById('clientTab');
-            const nutritionistView = document.getElementById('nutritionistView');
-            const clientView = document.getElementById('clientView');
+ <script>
+    // Data for clients (you can add more clients here)
+    const clientsData = {
+        'jane-doe': {
+            name: 'Jane Doe',
+            age: 34,
+            gender: 'Female',
+            height: "5'6\"",
+            goal: 'Weight Loss',
+            dietaryRestrictions: 'Gluten-free, lactose intolerant',
+            weight: 155,
+            weightHistory: [160, 158, 155, 154, 155],
+            calories: { carbs: 45, protein: 30, fats: 25 },
+        },
+        'john-smith': {
+            name: 'John Smith',
+            age: 45,
+            gender: 'Male',
+            height: "6'0\"",
+            goal: 'Muscle Gain',
+            dietaryRestrictions: 'Vegetarian',
+            weight: 190,
+            weightHistory: [185, 187, 189, 190, 190],
+            calories: { carbs: 50, protein: 35, fats: 15 },
+        },
+        'emily-white': {
+            name: 'Emily White',
+            age: 28,
+            gender: 'Female',
+            height: "5'4\"",
+            goal: 'Maintain Weight',
+            dietaryRestrictions: 'None',
+            weight: 130,
+            weightHistory: [130, 131, 130, 129, 130],
+            calories: { carbs: 55, protein: 25, fats: 20 },
+        }
+    };
 
-            const clientListEl = document.getElementById('clientList');
-            const clientDetailView = document.getElementById('clientDetailView');
-            const selectClientMessage = document.getElementById('selectClientMessage');
-            
-            const clientNameEl = document.getElementById('clientName');
-            const clientGoalEl = document.getElementById('clientGoal');
-            const clientAgeEl = document.getElementById('clientAge');
-            const clientHeightEl = document.getElementById('clientHeight');
-            const clientWeightEl = document.getElementById('clientWeight');
-            const clientTargetCaloriesEl = document.getElementById('clientTargetCalories');
-            const clientPreferencesEl = document.getElementById('clientPreferences');
-            const nutritionistMealPlanEl = document.getElementById('nutritionistMealPlan');
-            
-            const aiPromptEl = document.getElementById('aiPrompt');
-            const generateSuggestionBtn = document.getElementById('generateSuggestionBtn');
-            const aiSuggestionEl = document.getElementById('aiSuggestion');
-            const aiSuggestionTextEl = document.getElementById('aiSuggestionText');
+    // Initialize Chart.js variables
+    let caloriesChart;
+    let weightChart;
+    
+    // State for the currently selected client
+    let currentClientId = 'jane-doe';
 
-            const clientMealPlanEl = document.getElementById('clientMealPlan');
-            const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
-            const feedbackConfirmationEl = document.getElementById('feedbackConfirmation');
+    // Get DOM elements
+    const clientSelect = document.getElementById('client-select');
+    const generateBtn = document.getElementById('generateBtn');
+    const userInput = document.getElementById('userInput');
+    const outputDiv = document.getElementById('output');
+    const responseText = document.getElementById('response-text');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const statusMessage = document.getElementById('status-message');
 
-            let progressChartInstance = null;
-            let macroChartInstance = null;
+    // Your Gemini API key (replace with your actual key)
+    const apiKey = ""; // PASTE YOUR API KEY HERE
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
-            const clientsData = [
-                {
-                    id: 1,
-                    name: 'Jane Doe',
-                    goal: 'Weight Loss & Increased Energy',
-                    age: 34,
-                    height: "5' 6\"",
-                    weight: '150 lbs',
-                    targetCalories: '1800 kcal',
-                    preferences: 'No gluten, prefers fish over red meat.',
-                    mealPlan: [
-                        { meal: 'Breakfast', title: 'Scrambled Eggs with Spinach', details: '3 eggs, 1 cup spinach, 1/2 oz feta cheese. Cooked with olive oil.', calories: 350 },
-                        { meal: 'Lunch', title: 'Grilled Salmon Salad', details: '4oz salmon, mixed greens, cherry tomatoes, cucumber, lemon-dill vinaigrette.', calories: 550 },
-                        { meal: 'Snack', title: 'Apple with Almond Butter', details: '1 medium apple, 2 tbsp almond butter.', calories: 300 },
-                        { meal: 'Dinner', title: 'Quinoa Bowl with Roasted Vegetables', details: '1 cup quinoa, roasted broccoli, bell peppers, and zucchini with a tahini dressing.', calories: 600 }
-                    ],
-                    progress: [152, 151, 151, 150, 149, 148, 148, 150],
-                    macros: { protein: 30, carbs: 40, fat: 30 }
+    // Function to create a descriptive, contextual prompt for the API
+    const createPrompt = (client, userPrompt) => {
+        return `You are a professional nutrition planner. Your client's details are:
+        - Name: ${client.name}
+        - Age: ${client.age}
+        - Gender: ${client.gender}
+        - Height: ${client.height}
+        - Current Weight: ${client.weight} lbs
+        - Fitness Goal: ${client.goal}
+        - Dietary Restrictions: ${client.dietaryRestrictions}
+
+        Based on these details, please respond to the user's request.
+        User's Request: ${userPrompt}
+        `;
+    };
+
+    // Function to render the client dashboard based on the selected client
+    const renderClientDashboard = (clientId) => {
+        const client = clientsData[clientId];
+        if (!client) return;
+
+        // Update client info
+        document.getElementById('client-name').textContent = client.name;
+        document.getElementById('client-info').textContent = `${client.age} | ${client.gender} | ${client.height} | ${client.dietaryRestrictions}`;
+        document.getElementById('client-avatar').src = `https://placehold.co/64x64/E2E8F0/64748B?text=${client.name.split(' ').map(n => n[0]).join('')}`;
+        document.getElementById('client-goal').textContent = client.goal;
+        document.getElementById('client-weight').textContent = `${client.weight} lbs`;
+
+        // Update charts
+        updateCaloriesChart(client.calories);
+        updateWeightChart(client.weightHistory);
+    };
+
+    // Function to update the calories chart
+    const updateCaloriesChart = (data) => {
+        const ctx = document.getElementById('caloriesChart').getContext('2d');
+        if (caloriesChart) caloriesChart.destroy();
+        caloriesChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Carbs', 'Protein', 'Fats'],
+                datasets: [{
+                    data: [data.carbs, data.protein, data.fats],
+                    backgroundColor: ['#3b82f6', '#8b5cf6', '#ef4444'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: false }
+                }
+            }
+        });
+    };
+
+    // Function to update the weight chart
+    const updateWeightChart = (data) => {
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        if (weightChart) weightChart.destroy();
+        weightChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                datasets: [{
+                    label: 'Weight (lbs)',
+                    data: data,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
                 },
-                {
-                    id: 2,
-                    name: 'John Smith',
-                    goal: 'Muscle Gain',
-                    age: 28,
-                    height: "6' 1\"",
-                    weight: '185 lbs',
-                    targetCalories: '2800 kcal',
-                    preferences: 'Loves spicy food. Allergic to shellfish.',
-                    mealPlan: [
-                        { meal: 'Breakfast', title: 'Oatmeal with Protein Powder', details: '1 cup oats, 1 scoop vanilla protein powder, berries, and nuts.', calories: 600 },
-                        { meal: 'Lunch', title: 'Chicken Burrito Bowl', details: '6oz grilled chicken, brown rice, black beans, salsa, avocado.', calories: 800 },
-                        { meal: 'Snack', title: 'Greek Yogurt', details: '1 cup plain Greek yogurt with honey.', calories: 400 },
-                        { meal: 'Dinner', title: 'Steak with Sweet Potato', details: '6oz sirloin steak, 1 large baked sweet potato, steamed asparagus.', calories: 1000 }
-                    ],
-                    progress: [180, 181, 182, 183, 184, 184, 185, 185],
-                    macros: { protein: 40, carbs: 40, fat: 20 }
-                },
-                {
-                    id: 3,
-                    name: 'Emily White',
-                    goal: 'Maintain Weight, Improve Gut Health',
-                    age: 45,
-                    height: "5' 4\"",
-                    weight: '130 lbs',
-                    targetCalories: '2000 kcal',
-                    preferences: 'Vegetarian, focus on fermented foods.',
-                     mealPlan: [
-                        { meal: 'Breakfast', title: 'Kefir Smoothie', details: '1 cup kefir, banana, spinach, and chia seeds.', calories: 400 },
-                        { meal: 'Lunch', title: 'Lentil Soup with Sourdough', details: 'Large bowl of homemade lentil soup with a slice of sourdough bread.', calories: 600 },
-                        { meal: 'Snack', title: 'Kimchi on Crackers', details: '1/2 cup kimchi with whole grain crackers.', calories: 300 },
-                        { meal: 'Dinner', title: 'Tempeh Stir-fry', details: '4oz tempeh, mixed vegetables, and a ginger-soy sauce.', calories: 700 }
-                    ],
-                    progress: [130, 131, 130, 129, 130, 130, 131, 130],
-                    macros: { protein: 25, carbs: 50, fat: 25 }
-                }
-            ];
-
-            function switchView(view) {
-                if (view === 'nutritionist') {
-                    nutritionistTab.classList.add('tab-active');
-                    nutritionistTab.classList.remove('tab-inactive');
-                    clientTab.classList.add('tab-inactive');
-                    clientTab.classList.remove('tab-active');
-                    nutritionistView.classList.remove('hidden');
-                    clientView.classList.add('hidden');
-                } else {
-                    clientTab.classList.add('tab-active');
-                    clientTab.classList.remove('tab-inactive');
-                    nutritionistTab.classList.add('tab-inactive');
-                    nutritionistTab.classList.remove('tab-active');
-                    clientView.classList.remove('hidden');
-                    nutritionistView.classList.add('hidden');
-                    renderClientDashboard();
-                }
-            }
-            
-            nutritionistTab.addEventListener('click', () => switchView('nutritionist'));
-            clientTab.addEventListener('click', () => switchView('client'));
-
-            function renderClientList() {
-                clientListEl.innerHTML = '';
-                clientsData.forEach(client => {
-                    const clientDiv = document.createElement('div');
-                    clientDiv.className = 'p-4 border rounded-lg cursor-pointer hover:bg-[#FDFBF8] hover:border-[#8D7B68] transition';
-                    clientDiv.innerHTML = `
-                        <h3 class="font-bold text-lg text-[#3C3633]">${client.name}</h3>
-                        <p class="text-sm text-gray-500">${client.goal}</p>
-                    `;
-                    clientDiv.addEventListener('click', () => showClientDetails(client.id));
-                    clientListEl.appendChild(clientDiv);
-                });
-            }
-
-            function showClientDetails(clientId) {
-                const client = clientsData.find(c => c.id === clientId);
-                if (client) {
-                    clientNameEl.textContent = client.name;
-                    clientGoalEl.textContent = client.goal;
-                    clientAgeEl.textContent = client.age;
-                    clientHeightEl.textContent = client.height;
-                    clientWeightEl.textContent = client.weight;
-                    clientTargetCaloriesEl.textContent = client.targetCalories;
-                    clientPreferencesEl.textContent = client.preferences;
-                    
-                    renderMealPlan(client.mealPlan, nutritionistMealPlanEl);
-
-                    selectClientMessage.classList.add('hidden');
-                    clientDetailView.classList.remove('hidden');
-                }
-            }
-
-            function renderMealPlan(mealPlan, container) {
-                container.innerHTML = '';
-                mealPlan.forEach(item => {
-                    const accordion = document.createElement('div');
-                    accordion.className = 'border border-gray-200 rounded-lg';
-                    accordion.innerHTML = `
-                        <button class="w-full text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-t-lg focus:outline-none">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <span class="font-bold text-[#3C3633]">${item.meal}</span>:
-                                    <span class="text-gray-700">${item.title}</span>
-                                </div>
-                                <span class="text-sm text-gray-500">${item.calories} kcal</span>
-                            </div>
-                        </button>
-                        <div class="p-4 bg-white border-t border-gray-200 hidden rounded-b-lg">
-                            <p class="text-gray-600">${item.details}</p>
-                        </div>
-                    `;
-                    const button = accordion.querySelector('button');
-                    const content = accordion.querySelector('.p-4');
-                    button.addEventListener('click', () => {
-                        content.classList.toggle('hidden');
-                    });
-                    container.appendChild(accordion);
-                });
-            }
-
-            function renderClientDashboard() {
-                const client = clientsData[0]; // Default to Jane Doe for this demo
-                renderMealPlan(client.mealPlan, clientMealPlanEl);
-                renderProgressChart(client.progress);
-                renderMacroChart(client.macros);
-            }
-
-            function renderProgressChart(data) {
-                const ctx = document.getElementById('progressChart').getContext('2d');
-                if (progressChartInstance) {
-                    progressChartInstance.destroy();
-                }
-                progressChartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Wk 8', 'Wk 7', 'Wk 6', 'Wk 5', 'Wk 4', 'Wk 3', 'Wk 2', 'Wk 1'],
-                        datasets: [{
-                            label: 'Weight (lbs)',
-                            data: data,
-                            borderColor: '#8D7B68',
-                            backgroundColor: 'rgba(141, 123, 104, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: false
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
+                scales: {
+                    y: {
+                        beginAtZero: false
                     }
-                });
-            }
-
-            function renderMacroChart(data) {
-                const ctx = document.getElementById('macroChart').getContext('2d');
-                 if (macroChartInstance) {
-                    macroChartInstance.destroy();
                 }
-                macroChartInstance = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Protein', 'Carbs', 'Fat'],
-                        datasets: [{
-                            label: 'Macros',
-                            data: [data.protein, data.carbs, data.fat],
-                            backgroundColor: ['#8D7B68', '#A4907C', '#C8B6A6'],
-                            borderColor: '#FFFFFF',
-                            borderWidth: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        cutout: '70%',
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `${context.label}: ${context.raw}%`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
             }
+        });
+    };
+    
+    // Function to handle the API call
+    const handleApiCall = async (prompt) => {
+        // Show loading state
+        loadingSpinner.classList.remove('hidden');
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+        statusMessage.textContent = 'Contacting AI Planner...';
+        outputDiv.classList.add('hidden');
 
-            generateSuggestionBtn.addEventListener('click', async () => {
-                const prompt = aiPromptEl.value;
-                if (!prompt) return;
-                
-                aiSuggestionTextEl.textContent = 'Generating...';
-                aiSuggestionEl.classList.remove('hidden');
+        try {
+            const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
 
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = "AIzaSyAWEhL0vty4ktpaMaR__tU0kYxbdME3NAc";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            let response;
+            let result;
+            let retryCount = 0;
+            const maxRetries = 3;
+            let delay = 1000; // 1 second initial delay
 
+            while (retryCount < maxRetries) {
                 try {
-                    const response = await fetch(apiUrl, {
+                    response = await fetch(apiUrl, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
-                    if (!response.ok) {
-                        throw new Error(`API call failed with status: ${response.status}`);
-                    }
-                    const result = await response.json();
-                    
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const generatedText = result.candidates[0].content.parts[0].text;
-                        aiSuggestionTextEl.textContent = generatedText;
+                    if (response.ok) {
+                        result = await response.json();
+                        break; // Exit the retry loop on success
+                    } else if (response.status === 429) {
+                        // Too many requests, implement exponential backoff
+                        console.warn(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2; // Exponential backoff
+                        retryCount++;
                     } else {
-                        aiSuggestionTextEl.textContent = 'Sorry, the API response was empty or malformed. Please try again.';
+                        // Other HTTP errors
+                        const errorData = await response.json();
+                        throw new Error(`API Error: ${response.status} - ${errorData.error.message || response.statusText}`);
                     }
                 } catch (error) {
-                    console.error('Error calling the Gemini API:', error);
-                    aiSuggestionTextEl.textContent = 'Sorry, there was an error generating the suggestion. Please try again.';
+                    if (retryCount >= maxRetries) {
+                        throw error; // If max retries reached, re-throw the error
+                    }
+                    console.error(`Fetch failed on attempt ${retryCount + 1}:`, error);
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                    retryCount++;
                 }
-            });
-            
-            sendFeedbackBtn.addEventListener('click', () => {
-                feedbackConfirmationEl.classList.remove('hidden');
-                setTimeout(() => {
-                    feedbackConfirmationEl.classList.add('hidden');
-                }, 3000);
-            });
+            }
 
+            if (!result || !result.candidates || result.candidates.length === 0 || !result.candidates[0].content || !result.candidates[0].content.parts || result.candidates[0].content.parts.length === 0) {
+                throw new Error("Invalid API response format.");
+            }
 
-            // Initial Render
-            renderClientList();
-        });
-    </script>
+            const text = result.candidates[0].content.parts[0].text;
+            responseText.innerHTML = text.replace(/\n/g, '<br>');
+            outputDiv.classList.remove('hidden');
+            statusMessage.textContent = '';
+
+        } catch (error) {
+            console.error("API call failed:", error);
+            // Display a user-friendly error message
+            statusMessage.textContent = `Sorry, an error occurred: ${error.message}. Please check the console for details.`;
+            responseText.innerHTML = '';
+            outputDiv.classList.remove('hidden');
+        } finally {
+            // Hide loading state
+            loadingSpinner.classList.add('hidden');
+            generateBtn.disabled = false;
+            generateBtn.textContent = 'Generate Suggestion';
+        }
+    };
+
+    // Event listener for the generate button
+    generateBtn.addEventListener('click', () => {
+        const prompt = userInput.value.trim();
+        if (prompt) {
+            const client = clientsData[currentClientId];
+            const fullPrompt = createPrompt(client, prompt);
+            handleApiCall(fullPrompt);
+        } else {
+            statusMessage.textContent = "Please enter a request.";
+            userInput.focus();
+        }
+    });
+    
+    // Event listener for the client selection dropdown
+    clientSelect.addEventListener('change', (e) => {
+        currentClientId = e.target.value;
+        renderClientDashboard(currentClientId);
+    });
+
+    // Populate the client selection dropdown
+    const populateClientDropdown = () => {
+        for (const id in clientsData) {
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = clientsData[id].name;
+            clientSelect.appendChild(option);
+        }
+        // Set the initial selected client
+        clientSelect.value = currentClientId;
+    };
+
+    // Initial render on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        populateClientDropdown();
+        renderClientDashboard(currentClientId);
+        statusMessage.textContent = "Welcome to the AI Recipe Assistant! Choose a client and ask for a suggestion.";
+    });
+</script>
+
 </body>
 </html>
