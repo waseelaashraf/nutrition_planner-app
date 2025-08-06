@@ -4,94 +4,1092 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Powered Nutrition Planner</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-light: #e8f5e9;
+            --primary-dark: #388E3C;
+            --secondary-color: #2196F3;
+            --secondary-light: #e3f2fd;
+            --secondary-dark: #1976D2;
+            --accent-color: #FF9800;
+            --accent-light: #fff3e0;
+            --accent-dark: #F57C00;
+            --text-color: #333333;
+            --text-light: #757575;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --error-color: #f44336;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .btn-primary, .btn-secondary {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-top: 10px;
+            transition: all 0.3s;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-light);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-btn.active-tab {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-btn.active-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active-tab-content {
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading-indicator {
+            text-align: center;
+            padding: 20px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            border: 1px solid var(--primary-color);
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message, .success-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-width: 400px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: var(--error-color);
+            border: 1px solid #ef9a9a;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: var(--success-color);
+            border: 1px solid #a5d6a7;
+        }
+
+        .meal-plan {
+            margin-top: 20px;
+        }
+
+        .day-plan {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .day-plan:last-child {
+            border-bottom: none;
+        }
+
+        .day-plan h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .meal {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .meal h4 {
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+
+        .progress-container {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 15px;
+            }
+            
+            header h1 {
+                font-size: 24px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .btn-primary, .btn-secondary {
+                margin-right: 0;
+                margin-bottom: 10px;
+                width: 100%;
+            }
+        }
+
+        /* For very small screens */
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 20px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .card h2 {
+                font-size: 18px;
+            }
+            
+            .tab-btn {
+                font-size: 14px;
+                padding: 8px 5px;
+            }
+            
+            input, select, textarea {
+                font-size: 14px;
+            }
+            
+            .btn-primary, .btn-secondary {
+                font-size: 14px;
+                padding: 8px 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container mx-auto px-4 py-8">
         <header>
-            <h1>AI-Powered Nutrition Planner- Updated</h1>
-            <p>Personalized meal plans powered by AI</p>
+            <h1 class="text-3xl font-bold mb-2">AI-Powered Nutrition Planner</h1>
+            <p class="text-lg">Personalized meal plans powered by AI</p>
+            <div class="user-type-toggle mt-4">
+                <button id="nutritionist-view-btn" class="px-4 py-2 rounded-md bg-white bg-opacity-20 text-white mr-2">Nutritionist View</button>
+                <button id="client-view-btn" class="px-4 py-2 rounded-md bg-white bg-opacity-20 text-white">Client View</button>
+            </div>
         </header>
 
         <main>
-            <!-- User Profile Section -->
-            <section id="user-profile" class="card">
-                <h2>User Profile</h2>
-                <form id="profile-form">
-                    <div class="form-group">
-                        <label for="age">Age</label>
-                        <input type="number" id="age" name="age" min="1" max="120">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="gender">Gender</label>
-                        <select id="gender" name="gender">
-                            <option value="">Select</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                            <option value="prefer-not-to-say">Prefer not to say</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="dietary-restrictions">Dietary Restrictions</label>
-                        <input type="text" id="dietary-restrictions" name="dietaryRestrictions" placeholder="e.g., vegetarian, gluten-free">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="health-goals">Health Goals</label>
-                        <input type="text" id="health-goals" name="healthGoals" placeholder="e.g., weight loss, muscle gain">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="food-preferences">Food Preferences</label>
-                        <input type="text" id="food-preferences" name="foodPreferences" placeholder="e.g., likes chicken, dislikes broccoli">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="allergies">Allergies</label>
-                        <input type="text" id="allergies" name="allergies" placeholder="e.g., nuts, dairy">
-                    </div>
-                    
-                    <button type="submit" id="generate-plan-btn" class="btn-primary">Generate Meal Plan</button>
-                </form>
-            </section>
+            <!-- Nutritionist View -->
+            <div id="nutritionist-view" class="view-section">
+                <!-- User Profile Section -->
+                <section id="user-profile" class="card">
+                    <h2>User Profile</h2>
+                    <form id="profile-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="age" class="block mb-2 font-medium">Age</label>
+                                <input type="number" id="age" name="age" min="1" max="120" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                            
+                            <div>
+                                <label for="gender" class="block mb-2 font-medium">Gender</label>
+                                <select id="gender" name="gender" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="">Select</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                    <option value="prefer-not-to-say">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="dietary-restrictions" class="block mb-2 font-medium">Dietary Restrictions</label>
+                            <input type="text" id="dietary-restrictions" name="dietaryRestrictions" placeholder="e.g., vegetarian, gluten-free" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="health-goals" class="block mb-2 font-medium">Health Goals</label>
+                            <input type="text" id="health-goals" name="healthGoals" placeholder="e.g., weight loss, muscle gain" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="food-preferences" class="block mb-2 font-medium">Food Preferences</label>
+                            <input type="text" id="food-preferences" name="foodPreferences" placeholder="e.g., likes chicken, dislikes broccoli" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        
+                        <div class="mt-4">
+                            <label for="allergies" class="block mb-2 font-medium">Allergies</label>
+                            <input type="text" id="allergies" name="allergies" placeholder="e.g., nuts, dairy" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        
+                        <button type="submit" id="generate-plan-btn" class="btn-primary mt-6">Generate Meal Plan</button>
+                    </form>
+                </section>
 
-            <!-- Loading Indicator -->
-            <div id="loading-indicator" class="hidden">
-                <div class="spinner"></div>
-                <p>Generating your personalized meal plan...</p>
+                <!-- Loading Indicator -->
+                <div id="loading-indicator" class="hidden loading-indicator">
+                    <div class="spinner"></div>
+                    <p>Generating your personalized meal plan...</p>
+                </div>
+
+                <!-- Meal Plan Display Section -->
+                <section id="meal-plan-display" class="card hidden">
+                    <h2>Your Personalized Meal Plan</h2>
+                    <div id="meal-plan-content" class="meal-plan">
+                        <!-- Meal plan will be inserted here -->
+                    </div>
+                    <div class="action-buttons mt-6">
+                        <button id="save-plan-btn" class="btn-secondary">Save Plan</button>
+                        <button id="customize-plan-btn" class="btn-secondary">Customize Plan</button>
+                        <button id="new-plan-btn" class="btn-primary">Create New Plan</button>
+                    </div>
+                </section>
+
+                <!-- Progress Tracking -->
+                <section id="progress-tracking" class="card hidden">
+                    <h2>Progress Tracking</h2>
+                    <div class="progress-container">
+                        <h3 class="text-lg font-medium mb-2">Weekly Progress</h3>
+                        <div class="progress-bar">
+                            <div id="weekly-progress" class="progress" style="width: 0%"></div>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-600">0% Complete</p>
+                    </div>
+                    <div class="mt-6">
+                        <canvas id="progress-chart" width="400" height="200"></canvas>
+                    </div>
+                </section>
             </div>
 
-            <!-- Meal Plan Display Section -->
-            <section id="meal-plan-display" class="card hidden">
-                <h2>Your Personalized Meal Plan</h2>
-                <div id="meal-plan-content">
-                    <!-- Meal plan will be inserted here -->
-                </div>
-                <div class="action-buttons">
-                    <button id="save-plan-btn" class="btn-secondary">Save Plan</button>
-                    <button id="customize-plan-btn" class="btn-secondary">Customize Plan</button>
-                    <button id="new-plan-btn" class="btn-primary">Create New Plan</button>
-                </div>
-            </section>
+            <!-- Client View -->
+            <div id="client-view" class="view-section hidden">
+                <!-- Client Dashboard -->
+                <section id="client-dashboard" class="card">
+                    <h2>My Nutrition Dashboard</h2>
+                    <div class="dashboard-welcome p-4 mb-6 bg-green-50 rounded-lg">
+                        <h3 class="text-xl font-semibold text-green-800">Welcome, <span id="client-welcome-name">Client</span>!</h3>
+                        <p class="text-green-700">Here's your personalized nutrition plan and progress tracking.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="font-medium text-green-600 mb-2">Current Plan</h4>
+                            <p id="current-plan-name">No active plan</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="font-medium text-green-600 mb-2">Progress</h4>
+                            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div id="progress-bar" class="h-full bg-green-500" style="width: 0%"></div>
+                            </div>
+                            <p id="progress-percentage" class="mt-1 text-sm text-gray-600">0%</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="font-medium text-green-600 mb-2">Days Remaining</h4>
+                            <p id="days-remaining">-</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Meal Plan Display -->
+                <section id="client-meal-plan" class="card">
+                    <h2>My Meal Plan</h2>
+                    <div id="client-meal-plan-content" class="meal-plan">
+                        <!-- Meal plan will be inserted here -->
+                    </div>
+                    <div class="action-buttons mt-6">
+                        <button id="request-changes-btn" class="btn-secondary">Request Changes</button>
+                        <button id="mark-meal-complete-btn" class="btn-primary">Mark Meal as Complete</button>
+                    </div>
+                </section>
+            </div>
 
             <!-- Error Message Display -->
             <div id="error-message" class="error-message hidden">
                 <p id="error-text"></p>
-                <button id="close-error-btn" class="btn-secondary">Close</button>
+                <button id="close-error-btn" class="btn-secondary mt-2">Close</button>
+            </div>
+            
+            <!-- Success Message Display -->
+            <div id="success-message" class="success-message hidden">
+                <p id="success-text"></p>
+                <button id="close-success-btn" class="btn-secondary mt-2">Close</button>
             </div>
         </main>
 
-        <footer>
+        <footer class="mt-12 pt-6 border-t border-gray-200 text-center text-gray-600">
             <p>&copy; 2024 AI-Powered Nutrition Planner. All rights reserved.</p>
         </footer>
     </div>
 
-    <!-- Scripts -->
-     <script src="dummy-data.js"></script>
-    <script src="api-service.js"></script>
-    <script src="script.js"></script>
+    <script>
+        // API Service for Gemini Integration
+        class GeminiAIService {
+            constructor(apiKey) {
+                this.apiKey = apiKey;
+                this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+                this.cache = {};
+            }
+
+            // Generate meal plan based on user profile
+            async generateMealPlan(userProfile) {
+                const cacheKey = `mealPlan_${JSON.stringify(userProfile)}`;
+                
+                // Check cache first
+                if (this.cache[cacheKey]) {
+                    return this.cache[cacheKey];
+                }
+                
+                const prompt = this.buildMealPlanPrompt(userProfile);
+                
+                try {
+                    const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: prompt
+                                }]
+                            }]
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    const mealPlan = this.parseMealPlanResponse(data);
+                    
+                    // Cache the result
+                    this.cache[cacheKey] = mealPlan;
+                    
+                    return mealPlan;
+                } catch (error) {
+                    console.error('Error generating meal plan:', error);
+                    return this.getFallbackMealPlan();
+                }
+            }
+
+            // Build the prompt for meal plan generation
+            buildMealPlanPrompt(userProfile) {
+                return `You are a professional nutritionist creating a personalized meal plan for a client with the following profile:
+- Age: ${userProfile.age || 'Not specified'}
+- Gender: ${userProfile.gender || 'Not specified'}
+- Dietary restrictions: ${userProfile.dietaryRestrictions || 'None'}
+- Health goals: ${userProfile.healthGoals || 'General health'}
+- Food preferences: ${userProfile.foodPreferences || 'No specific preferences'}
+- Allergies: ${userProfile.allergies || 'None'}
+
+Please generate a 3-day meal plan with breakfast, lunch, and dinner for each day.
+Each meal should include:
+1. Meal name
+2. Ingredients list with quantities
+3. Step-by-step cooking instructions
+4. Approximate nutritional information (calories, protein, carbs, fat)
+
+Format your response as JSON with the following structure:
+{
+  "mealPlan": [
+    {
+      "day": "Monday",
+      "meals": [
+        {
+          "type": "breakfast",
+          "name": "Meal name",
+          "ingredients": [{"name": "ingredient", "quantity": "amount"}],
+          "instructions": ["Step 1", "Step 2", ...],
+          "nutrition": {"calories": 0, "protein": 0, "carbs": 0, "fat": 0}
+        }
+      ]
+    }
+  ]
+}`;
+            }
+
+            // Parse the API response
+            parseMealPlanResponse(data) {
+                try {
+                    // Extract the text from the Gemini response
+                    const responseText = data.candidates[0].content.parts[0].text;
+                    
+                    // Try to parse JSON from the response
+                    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        return JSON.parse(jsonMatch[0]);
+                    }
+                    
+                    // If no JSON found, return structured data based on text
+                    return this.extractMealPlanFromText(responseText);
+                } catch (error) {
+                    console.error('Error parsing API response:', error);
+                    return this.getFallbackMealPlan();
+                }
+            }
+
+            // Extract meal plan from text if JSON parsing fails
+            extractMealPlanFromText(text) {
+                // This is a simplified extraction - you might need to enhance this
+                // based on the actual response format from Gemini
+                return {
+                    mealPlan: [
+                        {
+                            day: "Monday",
+                            meals: [
+                                {
+                                    type: "breakfast",
+                                    name: "Custom Breakfast",
+                                    ingredients: [{name: "Oatmeal", quantity: "1 cup"}],
+                                    instructions: ["Cook oatmeal with water or milk"],
+                                    nutrition: {calories: 150, protein: 5, carbs: 27, fat: 3}
+                                }
+                            ]
+                        }
+                    ]
+                };
+            }
+
+            // Fallback meal plan if API fails
+            getFallbackMealPlan() {
+                return {
+                    mealPlan: [
+                        {
+                            day: "Monday",
+                            meals: [
+                                {
+                                    type: "breakfast",
+                                    name: "Healthy Breakfast",
+                                    ingredients: [{name: "Oatmeal", quantity: "1 cup"}, {name: "Banana", quantity: "1"}],
+                                    instructions: ["Cook oatmeal", "Slice banana on top"],
+                                    nutrition: {calories: 250, protein: 6, carbs: 50, fat: 4}
+                                },
+                                {
+                                    type: "lunch",
+                                    name: "Balanced Lunch",
+                                    ingredients: [{name: "Chicken breast", quantity: "100g"}, {name: "Vegetables", quantity: "1 cup"}],
+                                    instructions: ["Grill chicken", "Steam vegetables"],
+                                    nutrition: {calories: 300, protein: 30, carbs: 10, fat: 15}
+                                },
+                                {
+                                    type: "dinner",
+                                    name: "Light Dinner",
+                                    ingredients: [{name: "Salmon", quantity: "100g"}, {name: "Salad", quantity: "1 bowl"}],
+                                    instructions: ["Bake salmon", "Mix salad greens"],
+                                    nutrition: {calories: 350, protein: 25, carbs: 15, fat: 20}
+                                }
+                            ]
+                        },
+                        {
+                            day: "Tuesday",
+                            meals: [
+                                {
+                                    type: "breakfast",
+                                    name: "Protein Smoothie",
+                                    ingredients: [{name: "Protein powder", quantity: "1 scoop"}, {name: "Milk", quantity: "1 cup"}, {name: "Berries", quantity: "1/2 cup"}],
+                                    instructions: ["Blend all ingredients until smooth"],
+                                    nutrition: {calories: 220, protein: 20, carbs: 25, fat: 5}
+                                },
+                                {
+                                    type: "lunch",
+                                    name: "Quinoa Salad",
+                                    ingredients: [{name: "Quinoa", quantity: "1 cup"}, {name: "Vegetables", quantity: "1.5 cups"}, {name: "Olive oil", quantity: "1 tbsp"}],
+                                    instructions: ["Cook quinoa", "Mix with vegetables and olive oil"],
+                                    nutrition: {calories: 350, protein: 10, carbs: 45, fat: 15}
+                                },
+                                {
+                                    type: "dinner",
+                                    name: "Grilled Fish",
+                                    ingredients: [{name: "White fish", quantity: "150g"}, {name: "Asparagus", quantity: "1 cup"}, {name: "Lemon", quantity: "1/2"}],
+                                    instructions: ["Grill fish with lemon", "Steam asparagus"],
+                                    nutrition: {calories: 280, protein: 30, carbs: 10, fat: 12}
+                                }
+                            ]
+                        },
+                        {
+                            day: "Wednesday",
+                            meals: [
+                                {
+                                    type: "breakfast",
+                                    name: "Avocado Toast",
+                                    ingredients: [{name: "Whole grain bread", quantity: "2 slices"}, {name: "Avocado", quantity: "1/2"}, {name: "Egg", quantity: "1"}],
+                                    instructions: ["Toast bread", "Mash avocado on toast", "Fry egg and place on top"],
+                                    nutrition: {calories: 320, protein: 15, carbs: 30, fat: 18}
+                                },
+                                {
+                                    type: "lunch",
+                                    name: "Chicken Wrap",
+                                    ingredients: [{name: "Whole grain tortilla", quantity: "1"}, {name: "Chicken breast", quantity: "100g"}, {name: "Vegetables", quantity: "1 cup"}],
+                                    instructions: ["Cook chicken", "Wrap chicken and vegetables in tortilla"],
+                                    nutrition: {calories: 350, protein: 30, carbs: 35, fat: 12}
+                                },
+                                {
+                                    type: "dinner",
+                                    name: "Vegetable Stir Fry",
+                                    ingredients: [{name: "Mixed vegetables", quantity: "2 cups"}, {name: "Tofu", quantity: "100g"}, {name: "Soy sauce", quantity: "1 tbsp"}],
+                                    instructions: ["Stir fry vegetables and tofu with soy sauce"],
+                                    nutrition: {calories: 250, protein: 15, carbs: 25, fat: 10}
+                                }
+                            ]
+                        }
+                    ]
+                };
+            }
+        }
+
+        // Initialize the API service with your Gemini API key
+        // Replace 'YOUR_GEMINI_API_KEY' with your actual API key
+        const apiKey = "AIzaSyAWEhL0vty4ktpaMaR__tU0kYxbdME3NAc"; // PASTE YOUR API KEY HERE
+        const apiService = new GeminiAIService(apiKey);
+
+        // DOM Elements
+        const nutritionistViewBtn = document.getElementById('nutritionist-view-btn');
+        const clientViewBtn = document.getElementById('client-view-btn');
+        const nutritionistView = document.getElementById('nutritionist-view');
+        const clientView = document.getElementById('client-view');
+        const profileForm = document.getElementById('profile-form');
+        const generatePlanBtn = document.getElementById('generate-plan-btn');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const mealPlanDisplay = document.getElementById('meal-plan-display');
+        const mealPlanContent = document.getElementById('meal-plan-content');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const closeErrorBtn = document.getElementById('close-error-btn');
+        const successMessage = document.getElementById('success-message');
+        const successText = document.getElementById('success-text');
+        const closeSuccessBtn = document.getElementById('close-success-btn');
+        const savePlanBtn = document.getElementById('save-plan-btn');
+        const customizePlanBtn = document.getElementById('customize-plan-btn');
+        const newPlanBtn = document.getElementById('new-plan-btn');
+        const progressTracking = document.getElementById('progress-tracking');
+        const weeklyProgress = document.getElementById('weekly-progress');
+        const progressChart = document.getElementById('progress-chart');
+        const clientWelcomeName = document.getElementById('client-welcome-name');
+        const currentPlanName = document.getElementById('current-plan-name');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const daysRemaining = document.getElementById('days-remaining');
+        const clientMealPlanContent = document.getElementById('client-meal-plan-content');
+        const requestChangesBtn = document.getElementById('request-changes-btn');
+        const markMealCompleteBtn = document.getElementById('mark-meal-complete-btn');
+
+        // Data Storage
+        let currentMealPlan = null;
+        let progressChartInstance = null;
+
+        // Initialize the app
+        function init() {
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Load data from localStorage
+            loadDataFromStorage();
+            
+            // Initialize progress chart
+            initProgressChart();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // View toggle
+            nutritionistViewBtn.addEventListener('click', () => switchView('nutritionist'));
+            clientViewBtn.addEventListener('click', () => switchView('client'));
+            
+            // Form submission
+            profileForm.addEventListener('submit', handleFormSubmit);
+            
+            // Action buttons
+            savePlanBtn.addEventListener('click', saveMealPlan);
+            customizePlanBtn.addEventListener('click', customizeMealPlan);
+            newPlanBtn.addEventListener('click', createNewPlan);
+            requestChangesBtn.addEventListener('click', handleRequestChanges);
+            markMealCompleteBtn.addEventListener('click', handleMarkMealComplete);
+            
+            // Message close buttons
+            closeErrorBtn.addEventListener('click', hideErrorMessage);
+            closeSuccessBtn.addEventListener('click', hideSuccessMessage);
+        }
+
+        // Switch between nutritionist and client views
+        function switchView(view) {
+            if (view === 'nutritionist') {
+                nutritionistView.classList.remove('hidden');
+                clientView.classList.add('hidden');
+                nutritionistViewBtn.classList.add('bg-white', 'bg-opacity-20');
+                clientViewBtn.classList.remove('bg-white', 'bg-opacity-20');
+            } else {
+                nutritionistView.classList.add('hidden');
+                clientView.classList.remove('hidden');
+                nutritionistViewBtn.classList.remove('bg-white', 'bg-opacity-20');
+                clientViewBtn.classList.add('bg-white', 'bg-opacity-20');
+                
+                // Update client dashboard
+                updateClientDashboard();
+            }
+        }
+
+        // Handle form submission
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            // Show loading indicator
+            loadingIndicator.classList.remove('hidden');
+            
+            // Collect form data
+            const formData = new FormData(profileForm);
+            const userProfile = {
+                age: formData.get('age'),
+                gender: formData.get('gender'),
+                dietaryRestrictions: formData.get('dietaryRestrictions'),
+                healthGoals: formData.get('healthGoals'),
+                foodPreferences: formData.get('foodPreferences'),
+                allergies: formData.get('allergies')
+            };
+            
+            try {
+                // Generate meal plan using API
+                const mealPlan = await apiService.generateMealPlan(userProfile);
+                
+                // Store the meal plan
+                currentMealPlan = {
+                    generatedAt: new Date().toISOString(),
+                    data: mealPlan
+                };
+                
+                // Save to localStorage
+                saveDataToStorage();
+                
+                // Display the meal plan
+                displayMealPlan(mealPlan);
+                
+                // Show progress tracking
+                progressTracking.classList.remove('hidden');
+                updateProgressChart();
+                
+                // Show success message
+                showSuccessMessage('Meal plan generated successfully!');
+            } catch (error) {
+                // Show error message
+                showError('Failed to generate meal plan. Please try again.');
+                console.error('Error:', error);
+            } finally {
+                // Hide loading indicator
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        // Display meal plan in the UI
+        function displayMealPlan(mealPlan) {
+            // Clear previous content
+            mealPlanContent.innerHTML = '';
+            clientMealPlanContent.innerHTML = '';
+            
+            // Check if meal plan exists
+            if (!mealPlan || !mealPlan.mealPlan || mealPlan.mealPlan.length === 0) {
+                showError('No meal plan was generated. Please check your inputs and try again.');
+                return;
+            }
+            
+            // Create HTML for each day
+            mealPlan.mealPlan.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'day-plan';
+                
+                const dayTitle = document.createElement('h3');
+                dayTitle.textContent = day.day;
+                dayElement.appendChild(dayTitle);
+                
+                // Create HTML for each meal
+                day.meals.forEach(meal => {
+                    const mealElement = document.createElement('div');
+                    mealElement.className = 'meal';
+                    
+                    const mealTitle = document.createElement('h4');
+                    mealTitle.textContent = `${meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}: ${meal.name}`;
+                    mealElement.appendChild(mealTitle);
+                    
+                    // Ingredients
+                    const ingredientsElement = document.createElement('div');
+                    ingredientsElement.className = 'ingredients';
+                    ingredientsElement.innerHTML = '<strong>Ingredients:</strong>';
+                    
+                    const ingredientsList = document.createElement('ul');
+                    meal.ingredients.forEach(ingredient => {
+                        const ingredientItem = document.createElement('li');
+                        ingredientItem.textContent = `${ingredient.quantity} ${ingredient.name}`;
+                        ingredientsList.appendChild(ingredientItem);
+                    });
+                    
+                    ingredientsElement.appendChild(ingredientsList);
+                    mealElement.appendChild(ingredientsElement);
+                    
+                    // Instructions
+                    const instructionsElement = document.createElement('div');
+                    instructionsElement.className = 'instructions';
+                    instructionsElement.innerHTML = '<strong>Instructions:</strong>';
+                    
+                    const instructionsList = document.createElement('ol');
+                    meal.instructions.forEach(instruction => {
+                        const instructionItem = document.createElement('li');
+                        instructionItem.textContent = instruction;
+                        instructionsList.appendChild(instructionItem);
+                    });
+                    
+                    instructionsElement.appendChild(instructionsList);
+                    mealElement.appendChild(instructionsElement);
+                    
+                    // Nutrition
+                    const nutritionElement = document.createElement('div');
+                    nutritionElement.className = 'nutrition';
+                    nutritionElement.innerHTML = `<strong>Nutrition:</strong> Calories: ${meal.nutrition.calories}, Protein: ${meal.nutrition.protein}g, Carbs: ${meal.nutrition.carbs}g, Fat: ${meal.nutrition.fat}g`;
+                    mealElement.appendChild(nutritionElement);
+                    
+                    dayElement.appendChild(mealElement);
+                });
+                
+                mealPlanContent.appendChild(dayElement);
+                clientMealPlanContent.appendChild(dayElement.cloneNode(true));
+            });
+            
+            // Show meal plan display
+            mealPlanDisplay.classList.remove('hidden');
+        }
+
+        // Save meal plan (placeholder function)
+        function saveMealPlan() {
+            // In a real application, this would save the meal plan to a database or local storage
+            showSuccessMessage('Meal plan saved successfully!');
+        }
+
+        // Customize meal plan (placeholder function)
+        function customizeMealPlan() {
+            // In a real application, this would open a customization interface
+            showSuccessMessage('Customization feature coming soon!');
+        }
+
+        // Create new plan
+        function createNewPlan() {
+            // Reset form and hide meal plan
+            profileForm.reset();
+            mealPlanDisplay.classList.add('hidden');
+            progressTracking.classList.add('hidden');
+            currentMealPlan = null;
+            saveDataToStorage();
+            window.scrollTo(0, 0);
+        }
+
+        // Handle request changes
+        function handleRequestChanges() {
+            // In a real application, this would open a feedback form
+            showSuccessMessage('Feedback feature coming soon!');
+        }
+
+        // Handle mark meal complete
+        function handleMarkMealComplete() {
+            // In a real application, this would mark a meal as complete
+            showSuccessMessage('Meal marked as complete!');
+        }
+
+        // Update client dashboard
+        function updateClientDashboard() {
+            if (!currentMealPlan) {
+                clientWelcomeName.textContent = 'Client';
+                currentPlanName.textContent = 'No active plan';
+                progressBar.style.width = '0%';
+                progressPercentage.textContent = '0%';
+                daysRemaining.textContent = '-';
+                return;
+            }
+            
+            clientWelcomeName.textContent = 'Client';
+            currentPlanName.textContent = '3-Day Plan';
+            
+            // Calculate progress (simplified for demo)
+            const progressPercentageValue = 30; // 30% complete
+            progressBar.style.width = `${progressPercentageValue}%`;
+            progressPercentage.textContent = `${progressPercentageValue}%`;
+            
+            // Calculate days remaining
+            const generatedDate = new Date(currentMealPlan.generatedAt);
+            const endDate = new Date(generatedDate);
+            endDate.setDate(generatedDate.getDate() + 3);
+            
+            const today = new Date();
+            const diffTime = endDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            daysRemaining.textContent = diffDays > 0 ? `${diffDays} days` : 'Plan completed';
+        }
+
+        // Initialize progress chart
+        function initProgressChart() {
+            const ctx = progressChart.getContext('2d');
+            progressChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    datasets: [{
+                        label: 'Calories Consumed',
+                        data: [1800, 1900, 1750, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Calories'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update progress chart
+        function updateProgressChart() {
+            if (progressChartInstance && currentMealPlan) {
+                // Update with some sample data for demo purposes
+                progressChartInstance.data.datasets[0].data = [1800, 1900, 1750, 0, 0, 0, 0];
+                progressChartInstance.update();
+            }
+        }
+
+        // Show loading indicator
+        function showLoadingIndicator() {
+            loadingIndicator.classList.remove('hidden');
+        }
+
+        // Hide loading indicator
+        function hideLoadingIndicator() {
+            loadingIndicator.classList.add('hidden');
+        }
+
+        // Show error message
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(hideErrorMessage, 5000);
+        }
+
+        // Hide error message
+        function hideErrorMessage() {
+            errorMessage.classList.add('hidden');
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            successText.textContent = message;
+            successMessage.classList.remove('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(hideSuccessMessage, 5000);
+        }
+
+        // Hide success message
+        function hideSuccessMessage() {
+            successMessage.classList.add('hidden');
+        }
+
+        // Load data from localStorage
+        function loadDataFromStorage() {
+            const savedMealPlan = localStorage.getItem('nutritionPlannerMealPlan');
+            if (savedMealPlan) {
+                currentMealPlan = JSON.parse(savedMealPlan);
+                
+                // If there's a current meal plan, display it
+                if (currentMealPlan && currentMealPlan.data) {
+                    displayMealPlan(currentMealPlan.data);
+                    progressTracking.classList.remove('hidden');
+                    updateProgressChart();
+                }
+            }
+        }
+
+        // Save data to localStorage
+        function saveDataToStorage() {
+            if (currentMealPlan) {
+                localStorage.setItem('nutritionPlannerMealPlan', JSON.stringify(currentMealPlan));
+            } else {
+                localStorage.removeItem('nutritionPlannerMealPlan');
+            }
+        }
+
+        // Initialize the app when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
