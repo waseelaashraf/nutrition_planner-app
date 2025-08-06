@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the API service with your Gemini API key
     // Replace 'YOUR_GEMINI_API_KEY' with your actual API key
-    const apiService = new GeminiAIService('AIzaSyAWEhL0vty4ktpaMaR__tU0kYxbdME3NAc');
+    // At the top of script.js
+const apiService = new GeminiAIService(config.GEMINI_API_KEY);
     
     // DOM Elements
     const profileForm = document.getElementById('profile-form');
@@ -290,4 +291,41 @@ function displayMealPlan(mealPlan) {
     
     // Rest of the displayMealPlan function...
     // (existing code remains the same)
+}
+// In the loadDataFromStorage function
+function loadDataFromStorage() {
+    // Load clients with dummy data if needed
+    clients = loadDummyDataIfNeeded();
+    
+    // Rest of the function remains the same...
+    // Load recipes
+    const savedRecipes = localStorage.getItem('nutritionPlannerRecipes');
+    if (savedRecipes) {
+        recipes = JSON.parse(savedRecipes);
+    }
+    
+    // Load feedback
+    const savedFeedback = localStorage.getItem('nutritionPlannerFeedback');
+    if (savedFeedback) {
+        feedback = JSON.parse(savedFeedback);
+    }
+    
+    // Load current meal plan
+    const savedMealPlan = localStorage.getItem('nutritionPlannerCurrentMealPlan');
+    if (savedMealPlan) {
+        currentMealPlan = JSON.parse(savedMealPlan);
+        
+        // If there's a current meal plan, select the client
+        if (currentMealPlan && currentMealPlan.clientId) {
+            selectedClientId = currentMealPlan.clientId;
+            const client = clients.find(c => c.id === selectedClientId);
+            
+            if (client) {
+                selectedClientName.textContent = client.name;
+                clientSelectedMessage.classList.remove('hidden');
+                noClientSelected.classList.add('hidden');
+                mealPlanningForm.classList.remove('hidden');
+            }
+        }
+    }
 }
