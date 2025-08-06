@@ -3,423 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Nutrition Planner</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        /* Custom spinner for loading state */
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border-left-color: #3b82f6;
-            animation: spin 1s ease infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-    <!-- Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>AI-Powered Nutrition Planner</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="antialiased text-gray-800 p-4">
-
-    <!-- Main Container -->
-    <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden mt-8">
-
-        <!-- Header -->
-        <header class="p-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white flex justify-between items-center">
-            <h1 class="text-3xl font-bold">AI Nutrition Planner</h1>
-            <!-- Client Selection Dropdown -->
-            <div class="flex items-center space-x-2">
-                <label for="client-select" class="font-medium text-lg">Select Client:</label>
-                <select id="client-select" class="p-2 rounded-lg bg-white text-gray-800 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
-                    <!-- Options will be populated by JavaScript -->
-                </select>
-            </div>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI-Powered Nutrition Planner</h1>
+            <p>Personalized meal plans powered by AI</p>
         </header>
 
-        <!-- Tab Navigation -->
-        <div class="flex border-b border-gray-200">
-            <button id="nutritionist-tab" class="py-4 px-6 text-gray-700 font-semibold border-b-2 border-blue-500 hover:text-blue-500 focus:outline-none transition-colors duration-200">
-                Nutritionist View
-            </button>
-            <button id="client-tab" class="py-4 px-6 text-gray-500 font-semibold hover:text-blue-500 focus:outline-none transition-colors duration-200">
-                Client View
-            </button>
-        </div>
-
-        <!-- Content Area -->
-        <div class="p-8">
-
-            <!-- Nutritionist View Content (Initially active) -->
-            <div id="nutritionist-view" class="grid md:grid-cols-2 gap-8">
-                <!-- Client Dashboard View -->
-                <div id="client-dashboard" class="bg-gray-50 p-6 rounded-2xl shadow-inner border border-gray-200">
-                    <div class="flex items-center space-x-4 mb-6">
-                        <img id="client-avatar" src="https://placehold.co/64x64/E2E8F0/64748B?text=C" alt="Client Avatar" class="rounded-full w-16 h-16 shadow-lg border-2 border-white">
-                        <div>
-                            <h2 id="client-name" class="text-2xl font-bold"></h2>
-                            <p id="client-info" class="text-gray-500 text-sm"></p>
-                        </div>
+        <main>
+            <!-- User Profile Section -->
+            <section id="user-profile" class="card">
+                <h2>User Profile</h2>
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" min="1" max="120">
                     </div>
-
-                    <!-- Goals and Health Metrics -->
-                    <div class="grid grid-cols-2 gap-4 text-center mb-6">
-                        <div class="bg-blue-100 p-4 rounded-xl shadow-md border-b-4 border-blue-400">
-                            <p class="text-xs font-semibold uppercase text-blue-800">Goal</p>
-                            <p id="client-goal" class="text-lg font-bold mt-1 text-blue-600"></p>
-                        </div>
-                        <div class="bg-purple-100 p-4 rounded-xl shadow-md border-b-4 border-purple-400">
-                            <p class="text-xs font-semibold uppercase text-purple-800">Weight</p>
-                            <p id="client-weight" class="text-lg font-bold mt-1 text-purple-600"></p>
-                        </div>
+                    
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender">
+                            <option value="">Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer-not-to-say">Prefer not to say</option>
+                        </select>
                     </div>
-
-                    <!-- Charts -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white p-4 rounded-xl shadow-md">
-                            <h3 class="text-md font-semibold mb-2">Calories Breakdown</h3>
-                            <canvas id="caloriesChart"></canvas>
-                        </div>
-                        <div class="bg-white p-4 rounded-xl shadow-md">
-                            <h3 class="text-md font-semibold mb-2">Weight Progress</h3>
-                            <canvas id="weightChart"></canvas>
-                        </div>
+                    
+                    <div class="form-group">
+                        <label for="dietary-restrictions">Dietary Restrictions</label>
+                        <input type="text" id="dietary-restrictions" name="dietaryRestrictions" placeholder="e.g., vegetarian, gluten-free">
                     </div>
-                </div>
-
-                <!-- AI Recipe Assistant View -->
-                <div class="bg-gray-50 p-6 rounded-2xl shadow-inner border border-gray-200">
-                    <h2 class="text-2xl font-bold mb-4 text-center">AI Recipe Assistant</h2>
-
-                    <!-- Input and Button -->
-                    <div class="flex flex-col space-y-4">
-                        <textarea id="userInput" class="w-full p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent transition resize-none" rows="4" placeholder="e.g., 'Suggest a low-carb breakfast idea for my client with a nut allergy.'"></textarea>
-                        <button id="generateBtn" class="w-full py-3 px-6 bg-blue-500 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-600 transition transform hover:scale-105">
-                            Generate Suggestion
-                        </button>
+                    
+                    <div class="form-group">
+                        <label for="health-goals">Health Goals</label>
+                        <input type="text" id="health-goals" name="healthGoals" placeholder="e.g., weight loss, muscle gain">
                     </div>
-
-                    <!-- Loading Spinner and Status Message -->
-                    <div id="status-container" class="mt-6 flex flex-col items-center justify-center space-y-4">
-                        <div id="loading-spinner" class="spinner hidden"></div>
-                        <p id="status-message" class="text-gray-500 text-sm italic"></p>
+                    
+                    <div class="form-group">
+                        <label for="food-preferences">Food Preferences</label>
+                        <input type="text" id="food-preferences" name="foodPreferences" placeholder="e.g., likes chicken, dislikes broccoli">
                     </div>
-
-                    <!-- API Response Output -->
-                    <div id="output" class="mt-6 p-6 bg-white rounded-2xl shadow-md transition-all duration-300">
-                        <p id="response-text" class="text-gray-700"></p>
+                    
+                    <div class="form-group">
+                        <label for="allergies">Allergies</label>
+                        <input type="text" id="allergies" name="allergies" placeholder="e.g., nuts, dairy">
                     </div>
-                </div>
+                    
+                    <button type="submit" id="generate-plan-btn" class="btn-primary">Generate Meal Plan</button>
+                </form>
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="hidden">
+                <div class="spinner"></div>
+                <p>Generating your personalized meal plan...</p>
             </div>
 
-            <!-- Client View Content (Initially hidden) -->
-            <div id="client-view" class="hidden">
-                <div class="flex items-center justify-center h-full text-center">
-                    <p class="text-gray-500 text-xl">Select a client to view their details and plan.</p>
+            <!-- Meal Plan Display Section -->
+            <section id="meal-plan-display" class="card hidden">
+                <h2>Your Personalized Meal Plan</h2>
+                <div id="meal-plan-content">
+                    <!-- Meal plan will be inserted here -->
                 </div>
+                <div class="action-buttons">
+                    <button id="save-plan-btn" class="btn-secondary">Save Plan</button>
+                    <button id="customize-plan-btn" class="btn-secondary">Customize Plan</button>
+                    <button id="new-plan-btn" class="btn-primary">Create New Plan</button>
+                </div>
+            </section>
+
+            <!-- Error Message Display -->
+            <div id="error-message" class="error-message hidden">
+                <p id="error-text"></p>
+                <button id="close-error-btn" class="btn-secondary">Close</button>
             </div>
+        </main>
 
-        </div>
-
+        <footer>
+            <p>&copy; 2024 AI-Powered Nutrition Planner. All rights reserved.</p>
+        </footer>
     </div>
 
-    <script>
-        // Data for clients (you can add more clients here)
-        const clientsData = {
-            'jane-doe': {
-                name: 'Jane Doe',
-                age: 34,
-                gender: 'Female',
-                height: "5'6\"",
-                goal: 'Weight Loss',
-                dietaryRestrictions: 'Gluten-free, lactose intolerant',
-                weight: 155,
-                weightHistory: [160, 158, 155, 154, 155],
-                calories: { carbs: 45, protein: 30, fats: 25 },
-            },
-            'john-smith': {
-                name: 'John Smith',
-                age: 45,
-                gender: 'Male',
-                height: "6'0\"",
-                goal: 'Muscle Gain',
-                dietaryRestrictions: 'Vegetarian',
-                weight: 190,
-                weightHistory: [185, 187, 189, 190, 190],
-                calories: { carbs: 50, protein: 35, fats: 15 },
-            },
-            'emily-white': {
-                name: 'Emily White',
-                age: 28,
-                gender: 'Female',
-                height: "5'4\"",
-                goal: 'Maintain Weight',
-                dietaryRestrictions: 'None',
-                weight: 130,
-                weightHistory: [130, 131, 130, 129, 130],
-                calories: { carbs: 55, protein: 25, fats: 20 },
-            }
-        };
-
-        // Initialize Chart.js variables
-        let caloriesChart;
-        let weightChart;
-        
-        // State for the currently selected client
-        let currentClientId = 'jane-doe';
-
-        // Get DOM elements
-        const nutritionistTab = document.getElementById('nutritionist-tab');
-        const clientTab = document.getElementById('client-tab');
-        const nutritionistView = document.getElementById('nutritionist-view');
-        const clientView = document.getElementById('client-view');
-
-        const clientSelect = document.getElementById('client-select');
-        const generateBtn = document.getElementById('generateBtn');
-        const userInput = document.getElementById('userInput');
-        const outputDiv = document.getElementById('output');
-        const responseText = document.getElementById('response-text');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const statusMessage = document.getElementById('status-message');
-
-        // Your Gemini API key (replace with your actual key)
-        const apiKey = "AIzaSyAWEhL0vty4ktpaMaR__tU0kYxbdME3NAc";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-        // Function to handle tab switching
-        const switchTab = (activeTab) => {
-            if (activeTab === 'nutritionist') {
-                nutritionistTab.classList.add('border-blue-500', 'text-gray-700');
-                nutritionistTab.classList.remove('text-gray-500', 'border-transparent');
-                clientTab.classList.add('text-gray-500', 'border-transparent');
-                clientTab.classList.remove('border-blue-500', 'text-gray-700');
-                nutritionistView.classList.remove('hidden');
-                clientView.classList.add('hidden');
-            } else {
-                clientTab.classList.add('border-blue-500', 'text-gray-700');
-                clientTab.classList.remove('text-gray-500', 'border-transparent');
-                nutritionistTab.classList.add('text-gray-500', 'border-transparent');
-                nutritionistTab.classList.remove('border-blue-500', 'text-gray-700');
-                clientView.classList.remove('hidden');
-                nutritionistView.classList.add('hidden');
-            }
-        };
-
-        // Event listeners for tabs
-        nutritionistTab.addEventListener('click', () => switchTab('nutritionist'));
-        clientTab.addEventListener('click', () => switchTab('client'));
-
-        // Function to create a descriptive, contextual prompt for the API
-        const createPrompt = (client, userPrompt) => {
-            return `You are a professional nutrition planner. Your client's details are:
-            - Name: ${client.name}
-            - Age: ${client.age}
-            - Gender: ${client.gender}
-            - Height: ${client.height}
-            - Current Weight: ${client.weight} lbs
-            - Fitness Goal: ${client.goal}
-            - Dietary Restrictions: ${client.dietaryRestrictions}
-
-            Based on these details, please respond to the user's request.
-            User's Request: ${userPrompt}
-            `;
-        };
-
-        // Function to render the client dashboard based on the selected client
-        const renderClientDashboard = (clientId) => {
-            const client = clientsData[clientId];
-            if (!client) return;
-
-            // Update client info
-            document.getElementById('client-name').textContent = client.name;
-            document.getElementById('client-info').textContent = `${client.age} | ${client.gender} | ${client.height} | ${client.dietaryRestrictions}`;
-            document.getElementById('client-avatar').src = `https://placehold.co/64x64/E2E8F0/64748B?text=${client.name.split(' ').map(n => n[0]).join('')}`;
-            document.getElementById('client-goal').textContent = client.goal;
-            document.getElementById('client-weight').textContent = `${client.weight} lbs`;
-
-            // Update charts
-            updateCaloriesChart(client.calories);
-            updateWeightChart(client.weightHistory);
-        };
-
-        // Function to update the calories chart
-        const updateCaloriesChart = (data) => {
-            const ctx = document.getElementById('caloriesChart').getContext('2d');
-            if (caloriesChart) caloriesChart.destroy();
-            caloriesChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Carbs', 'Protein', 'Fats'],
-                    datasets: [{
-                        data: [data.carbs, data.protein, data.fats],
-                        backgroundColor: ['#3b82f6', '#8b5cf6', '#ef4444'],
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        title: { display: false }
-                    }
-                }
-            });
-        };
-
-        // Function to update the weight chart
-        const updateWeightChart = (data) => {
-            const ctx = document.getElementById('weightChart').getContext('2d');
-            if (weightChart) weightChart.destroy();
-            weightChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
-                    datasets: [{
-                        label: 'Weight (lbs)',
-                        data: data,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false },
-                        title: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false
-                        }
-                    }
-                }
-            });
-        };
-        
-        // Function to handle the API call
-        const handleApiCall = async (prompt) => {
-            // Show loading state
-            loadingSpinner.classList.remove('hidden');
-            generateBtn.disabled = true;
-            generateBtn.textContent = 'Generating...';
-            statusMessage.textContent = 'Contacting AI Planner...';
-            outputDiv.classList.add('hidden');
-
-            try {
-                const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = { contents: chatHistory };
-
-                let response;
-                let result;
-                let retryCount = 0;
-                const maxRetries = 3;
-                let delay = 1000; // 1 second initial delay
-
-                while (retryCount < maxRetries) {
-                    try {
-                        response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (response.ok) {
-                            result = await response.json();
-                            break; // Exit the retry loop on success
-                        } else if (response.status === 429) {
-                            // Too many requests, implement exponential backoff
-                            console.warn(`Rate limit exceeded. Retrying in ${delay / 1000} seconds...`);
-                            await new Promise(res => setTimeout(res, delay));
-                            delay *= 2; // Exponential backoff
-                            retryCount++;
-                        } else {
-                            // Other HTTP errors
-                            const errorData = await response.json();
-                            throw new Error(`API Error: ${response.status} - ${errorData.error.message || response.statusText}`);
-                        }
-                    } catch (error) {
-                        if (retryCount >= maxRetries) {
-                            throw error; // If max retries reached, re-throw the error
-                        }
-                        console.error(`Fetch failed on attempt ${retryCount + 1}:`, error);
-                        await new Promise(res => setTimeout(res, delay));
-                        delay *= 2;
-                        retryCount++;
-                    }
-                }
-
-                if (!result || !result.candidates || result.candidates.length === 0 || !result.candidates[0].content || !result.candidates[0].content.parts || result.candidates[0].content.parts.length === 0) {
-                    throw new Error("Invalid API response format.");
-                }
-
-                const text = result.candidates[0].content.parts[0].text;
-                responseText.innerHTML = text.replace(/\n/g, '<br>');
-                outputDiv.classList.remove('hidden');
-                statusMessage.textContent = '';
-
-            } catch (error) {
-                console.error("API call failed:", error);
-                // Display a user-friendly error message
-                statusMessage.textContent = `Sorry, an error occurred: ${error.message}. Please check the console for details.`;
-                responseText.innerHTML = '';
-                outputDiv.classList.remove('hidden');
-            } finally {
-                // Hide loading state
-                loadingSpinner.classList.add('hidden');
-                generateBtn.disabled = false;
-                generateBtn.textContent = 'Generate Suggestion';
-            }
-        };
-
-        // Event listener for the generate button
-        generateBtn.addEventListener('click', () => {
-            const prompt = userInput.value.trim();
-            if (prompt) {
-                const client = clientsData[currentClientId];
-                const fullPrompt = createPrompt(client, prompt);
-                handleApiCall(fullPrompt);
-            } else {
-                statusMessage.textContent = "Please enter a request.";
-                userInput.focus();
-            }
-        });
-        
-        // Event listener for the client selection dropdown
-        clientSelect.addEventListener('change', (e) => {
-            currentClientId = e.target.value;
-            renderClientDashboard(currentClientId);
-        });
-
-        // Populate the client selection dropdown
-        const populateClientDropdown = () => {
-            for (const id in clientsData) {
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = clientsData[id].name;
-                clientSelect.appendChild(option);
-            }
-            // Set the initial selected client
-            clientSelect.value = currentClientId;
-        };
-
-        // Initial render on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            populateClientDropdown();
-            renderClientDashboard(currentClientId);
-            switchTab('nutritionist');
-            statusMessage.textContent = "Welcome to the AI Recipe Assistant! Choose a client and ask for a suggestion.";
-        });
-    </script>
+    <!-- Scripts -->
+    <script src="api-service.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
