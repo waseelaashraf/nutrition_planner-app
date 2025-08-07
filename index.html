@@ -57,18 +57,158 @@
             margin-bottom: 20px;
             transition: transform 0.3s, box-shadow 0.3s;
         }
+<!-- Nutritionist View -->
+<div id="nutritionist-view" class="view-section">
+    <!-- Client Management Section -->
+    <section id="client-management" class="card">
+        <h2>Client Management</h2>
+        <div class="tabs">
+            <button class="tab-btn active-tab" data-tab="client-list">Client List</button>
+            <button class="tab-btn" data-tab="add-client">Add New Client</button>
+        </div>
+        
+        <!-- Client List Tab -->
+        <div id="client-list" class="tab-content active-tab-content">
+            <div class="client-search mb-4">
+                <input type="text" id="search-client" placeholder="Search clients..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="py-2 px-4 border-b text-left">Name</th>
+                            <th class="py-2 px-4 border-b text-left">Age</th>
+                            <th class="py-2 px-4 border-b text-left">Health Goals</th>
+                            <th class="py-2 px-4 border-b text-left">Last Updated</th>
+                            <th class="py-2 px-4 border-b text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="client-table-body">
+                        <!-- Client rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Add Client Tab -->
+        <div id="add-client" class="tab-content">
+            <form id="add-client-form">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="client-name" class="block mb-2 font-medium">Client Name</label>
+                        <input type="text" id="client-name" name="clientName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="client-email" class="block mb-2 font-medium">Email</label>
+                        <input type="email" id="client-email" name="clientEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="client-age" class="block mb-2 font-medium">Age</label>
+                        <input type="number" id="client-age" name="clientAge" min="1" max="120" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="client-gender" class="block mb-2 font-medium">Gender</label>
+                        <select id="client-gender" name="clientGender" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer-not-to-say">Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <label for="client-dietary-restrictions" class="block mb-2 font-medium">Dietary Restrictions</label>
+                    <input type="text" id="client-dietary-restrictions" name="clientDietaryRestrictions" placeholder="e.g., vegetarian, gluten-free" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                
+                <div class="mt-4">
+                    <label for="client-health-goals" class="block mb-2 font-medium">Health Goals</label>
+                    <input type="text" id="client-health-goals" name="clientHealthGoals" placeholder="e.g., weight loss, muscle gain" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                
+                <div class="mt-4">
+                    <label for="client-food-preferences" class="block mb-2 font-medium">Food Preferences</label>
+                    <input type="text" id="client-food-preferences" name="clientFoodPreferences" placeholder="e.g., likes chicken, dislikes broccoli" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                
+                <div class="mt-4">
+                    <label for="client-allergies" class="block mb-2 font-medium">Allergies</label>
+                    <input type="text" id="client-allergies" name="clientAllergies" placeholder="e.g., nuts, dairy" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                
+                <button type="submit" class="btn-primary mt-6">Add Client</button>
+            </form>
+        </div>
+    </section>
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-        }
+    <!-- Selected Client Info -->
+    <div id="selected-client-info" class="card hidden">
+        <h2>Selected Client</h2>
+        <div class="bg-green-50 p-4 rounded-lg">
+            <p class="text-green-800">Selected client: <span id="selected-client-name" class="font-semibold"></span></p>
+            <button id="deselect-client-btn" class="btn-secondary mt-2">Deselect</button>
+        </div>
+    </div>
 
-        .card h2 {
-            margin-bottom: 15px;
-            color: var(--primary-dark);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 10px;
-        }
+    <!-- Meal Planning Section -->
+    <section id="meal-planning" class="card">
+        <h2>Meal Planning</h2>
+        <div id="no-client-selected" class="bg-yellow-50 p-4 rounded-lg mb-4">
+            <p class="text-yellow-800">Please select a client from the Client List to create a meal plan.</p>
+        </div>
+        
+        <div id="meal-planning-form" class="hidden">
+            <div class="mb-4">
+                <label for="plan-duration" class="block mb-2 font-medium">Plan Duration</label>
+                <select id="plan-duration" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="3">3 Days</option>
+                    <option value="7" selected>7 Days</option>
+                    <option value="14">14 Days</option>
+                    <option value="30">30 Days</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label for="meal-preferences" class="block mb-2 font-medium">Special Meal Preferences</label>
+                <textarea id="meal-preferences" placeholder="Any additional preferences or requirements for this meal plan..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+            </div>
+            
+            <button id="generate-meal-plan-btn" class="btn-primary">Generate AI-Powered Meal Plan</button>
+        </div>
+    </section>
+
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="hidden loading-indicator">
+        <div class="spinner"></div>
+        <p>Generating your personalized meal plan...</p>
+    </div>
+
+    <!-- Meal Plan Display Section -->
+    <section id="meal-plan-display" class="card hidden">
+        <h2>Generated Meal Plan</h2>
+        <div id="meal-plan-content" class="meal-plan">
+            <!-- Meal plan will be inserted here -->
+        </div>
+        <div class="action-buttons mt-6">
+            <button id="save-plan-btn" class="btn-secondary">Save Plan to Client</button>
+            <button id="customize-plan-btn" class="btn-secondary">Customize Plan</button>
+            <button id="new-plan-btn" class="btn-primary">Create New Plan</button>
+        </div>
+    </section>
+
+    <!-- Client Feedback Section -->
+    <section id="client-feedback" class="card">
+        <h2>Client Feedback</h2>
+        <div id="feedback-list" class="feedback-list">
+            <!-- Feedback items will be inserted here -->
+        </div>
+    </section>
+</div>
 
         .btn-primary, .btn-secondary {
             display: inline-block;
@@ -738,9 +878,63 @@ Format your response as JSON with the following structure:
         const markMealCompleteBtn = document.getElementById('mark-meal-complete-btn');
 
         // Data Storage
-        let currentMealPlan = null;
-        let progressChartInstance = null;
+let clients = [];
+let selectedClientId = null;
+let currentMealPlan = null;
+let progressChartInstance = null;
+let feedback = [];
+// Dummy client data for testing
+const dummyClients = [
+    {
+        id: "1",
+        name: "Sarah Johnson",
+        email: "sarah@example.com",
+        age: "32",
+        gender: "female",
+        dietaryRestrictions: "vegetarian",
+        healthGoals: "weight loss",
+        foodPreferences: "likes vegetables, dislikes spicy food",
+        allergies: "nuts",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    },
+    {
+        id: "2",
+        name: "Michael Chen",
+        email: "michael@example.com",
+        age: "45",
+        gender: "male",
+        dietaryRestrictions: "gluten-free",
+        healthGoals: "muscle gain",
+        foodPreferences: "likes chicken, fish",
+        allergies: "shellfish",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    },
+    {
+        id: "3",
+        name: "Emma Rodriguez",
+        email: "emma@example.com",
+        age: "28",
+        gender: "female",
+        dietaryRestrictions: "dairy-free",
+        healthGoals: "maintain weight",
+        foodPreferences: "likes fruits, dislikes red meat",
+        allergies: "dairy, eggs",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    }
+];
 
+// Function to load dummy data if no clients exist
+function loadDummyDataIfNeeded() {
+    const savedClients = localStorage.getItem('nutritionPlannerClients');
+    if (!savedClients || JSON.parse(savedClients).length === 0) {
+        localStorage.setItem('nutritionPlannerClients', JSON.stringify(dummyClients));
+        return dummyClients;
+    }
+    return JSON.parse(savedClients);
+}
         // Initialize the app
         function init() {
             // Set up event listeners
@@ -754,25 +948,86 @@ Format your response as JSON with the following structure:
         }
 
         // Set up event listeners
-        function setupEventListeners() {
-            // View toggle
-            nutritionistViewBtn.addEventListener('click', () => switchView('nutritionist'));
-            clientViewBtn.addEventListener('click', () => switchView('client'));
+function setupEventListeners() {
+    // View toggle
+    nutritionistViewBtn.addEventListener('click', () => switchView('nutritionist'));
+    clientViewBtn.addEventListener('click', () => switchView('client'));
+    
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabContainer = this.closest('.card, section');
+            const tabContents = tabContainer.querySelectorAll('.tab-content');
+            const tabId = this.dataset.tab;
             
-            // Form submission
-            profileForm.addEventListener('submit', handleFormSubmit);
+            // Update tab buttons
+            tabContainer.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active-tab');
+            });
+            this.classList.add('active-tab');
             
-            // Action buttons
-            savePlanBtn.addEventListener('click', saveMealPlan);
-            customizePlanBtn.addEventListener('click', customizeMealPlan);
-            newPlanBtn.addEventListener('click', createNewPlan);
-            requestChangesBtn.addEventListener('click', handleRequestChanges);
-            markMealCompleteBtn.addEventListener('click', handleMarkMealComplete);
-            
-            // Message close buttons
-            closeErrorBtn.addEventListener('click', hideErrorMessage);
-            closeSuccessBtn.addEventListener('click', hideSuccessMessage);
+            // Update tab contents
+            tabContents.forEach(content => {
+                content.classList.remove('active-tab-content');
+            });
+            document.getElementById(tabId).classList.add('active-tab-content');
+        });
+    });
+    
+    // Form submissions
+    document.getElementById('add-client-form')?.addEventListener('submit', handleAddClient);
+    document.getElementById('generate-meal-plan-btn')?.addEventListener('click', handleGenerateMealPlan);
+    document.getElementById('client-feedback-form')?.addEventListener('submit', handleClientFeedback);
+    
+    // Search client
+    document.getElementById('search-client')?.addEventListener('input', function() {
+        renderClientTable(this.value);
+    });
+    
+    // Action buttons
+    document.getElementById('save-plan-btn')?.addEventListener('click', saveMealPlan);
+    document.getElementById('customize-plan-btn')?.addEventListener('click', customizeMealPlan);
+    document.getElementById('new-plan-btn')?.addEventListener('click', createNewPlan);
+    document.getElementById('request-changes-btn')?.addEventListener('click', handleRequestChanges);
+    document.getElementById('mark-meal-complete-btn')?.addEventListener('click', handleMarkMealComplete);
+    document.getElementById('deselect-client-btn')?.addEventListener('click', deselectClient);
+    
+    // Message close buttons
+    closeErrorBtn.addEventListener('click', hideErrorMessage);
+    closeSuccessBtn.addEventListener('click', hideSuccessMessage);
+    
+    // Event delegation for dynamically created elements
+    document.addEventListener('click', function(e) {
+        // Handle client action buttons
+        if (e.target.classList.contains('select-client-btn')) {
+            const clientId = e.target.dataset.clientId;
+            selectClient(clientId);
         }
+        
+        if (e.target.classList.contains('edit-client-btn')) {
+            const clientId = e.target.dataset.clientId;
+            editClient(clientId);
+        }
+        
+        if (e.target.classList.contains('delete-client-btn')) {
+            const clientId = e.target.dataset.clientId;
+            deleteClient(clientId);
+        }
+        
+        // Handle feedback action buttons
+        if (e.target.classList.contains('respond-feedback-btn')) {
+            const feedbackId = e.target.dataset.feedbackId;
+            respondToFeedback(feedbackId);
+        }
+        
+        if (e.target.classList.contains('delete-feedback-btn')) {
+            const feedbackId = e.target.dataset.feedbackId;
+            deleteFeedback(feedbackId);
+        }
+    });
+}
+         
+   
 
         // Switch between nutritionist and client views
         function switchView(view) {
@@ -820,39 +1075,152 @@ Format your response as JSON with the following structure:
                     data: mealPlan
                 };
                 
-                // Save to localStorage
-                saveDataToStorage();
-                
-                // Display the meal plan
-                displayMealPlan(mealPlan);
-                
-                // Show progress tracking
-                progressTracking.classList.remove('hidden');
-                updateProgressChart();
-                
-                // Show success message
-                showSuccessMessage('Meal plan generated successfully!');
-            } catch (error) {
-                // Show error message
-                showError('Failed to generate meal plan. Please try again.');
-                console.error('Error:', error);
-            } finally {
-                // Hide loading indicator
-                loadingIndicator.classList.add('hidden');
-            }
+               // Save data to localStorage
+function saveDataToStorage() {
+    localStorage.setItem('nutritionPlannerClients', JSON.stringify(clients));
+    localStorage.setItem('nutritionPlannerFeedback', JSON.stringify(feedback));
+    
+    if (currentMealPlan) {
+        localStorage.setItem('nutritionPlannerCurrentMealPlan', JSON.stringify(currentMealPlan));
+    } else {
+        localStorage.removeItem('nutritionPlannerCurrentMealPlan');
+    }
+}
+
         }
 
-        // Display meal plan in the UI
-        function displayMealPlan(mealPlan) {
-            // Clear previous content
-            mealPlanContent.innerHTML = '';
-            clientMealPlanContent.innerHTML = '';
+       // Display meal plan in the UI
+function displayMealPlan(mealPlan) {
+    // Clear previous content
+    const mealPlanContent = document.getElementById('meal-plan-content');
+    const clientMealPlanContent = document.getElementById('client-meal-plan-content');
+    const weeklyMealPlan = document.getElementById('weekly-meal-plan');
+    
+    mealPlanContent.innerHTML = '';
+    clientMealPlanContent.innerHTML = '';
+    weeklyMealPlan.innerHTML = '';
+    
+    // Check if meal plan exists
+    if (!mealPlan || !mealPlan.mealPlan || mealPlan.mealPlan.length === 0) {
+        showError('No meal plan was generated. Please check your inputs and try again.');
+        return;
+    }
+    
+    // Create HTML for each day
+    mealPlan.mealPlan.forEach(day => {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'day-plan';
+        
+        const dayTitle = document.createElement('h3');
+        dayTitle.textContent = day.day;
+        dayElement.appendChild(dayTitle);
+        
+        // Create HTML for each meal
+        day.meals.forEach(meal => {
+            const mealElement = document.createElement('div');
+            mealElement.className = 'meal';
             
-            // Check if meal plan exists
-            if (!mealPlan || !mealPlan.mealPlan || mealPlan.mealPlan.length === 0) {
-                showError('No meal plan was generated. Please check your inputs and try again.');
-                return;
+            const mealTitle = document.createElement('h4');
+            mealTitle.textContent = `${meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}: ${meal.name}`;
+            mealElement.appendChild(mealTitle);
+            
+            // Ingredients
+            const ingredientsElement = document.createElement('div');
+            ingredientsElement.className = 'ingredients';
+            ingredientsElement.innerHTML = '<strong>Ingredients:</strong>';
+            
+            const ingredientsList = document.createElement('ul');
+            meal.ingredients.forEach(ingredient => {
+                const ingredientItem = document.createElement('li');
+                ingredientItem.textContent = `${ingredient.quantity} ${ingredient.name}`;
+                ingredientsList.appendChild(ingredientItem);
+            });
+            
+            ingredientsElement.appendChild(ingredientsList);
+            mealElement.appendChild(ingredientsElement);
+            
+            // Instructions
+            const instructionsElement = document.createElement('div');
+            instructionsElement.className = 'instructions';
+            instructionsElement.innerHTML = '<strong>Instructions:</strong>';
+            
+            const instructionsList = document.createElement('ol');
+            meal.instructions.forEach(instruction => {
+                const instructionItem = document.createElement('li');
+                instructionItem.textContent = instruction;
+                instructionsList.appendChild(instructionItem);
+            });
+            
+            instructionsElement.appendChild(instructionsList);
+            mealElement.appendChild(instructionsElement);
+            
+            // Nutrition
+            const nutritionElement = document.createElement('div');
+            nutritionElement.className = 'nutrition';
+            nutritionElement.innerHTML = `<strong>Nutrition:</strong> Calories: ${meal.nutrition.calories}, Protein: ${meal.nutrition.protein}g, Carbs: ${meal.nutrition.carbs}g, Fat: ${meal.nutrition.fat}g`;
+            mealElement.appendChild(nutritionElement);
+            
+            // Add checkbox for marking meal as complete (only in client view)
+            if (document.getElementById('client-view').classList.contains('hidden') === false) {
+                const completeContainer = document.createElement('div');
+                completeContainer.className = 'flex items-center mt-2';
+                
+                const completeCheckbox = document.createElement('input');
+                completeCheckbox.type = 'checkbox';
+                completeCheckbox.id = `complete-${day.day}-${meal.type}`;
+                completeCheckbox.dataset.day = day.day;
+                completeCheckbox.dataset.mealType = meal.type;
+                completeCheckbox.className = 'mr-2';
+                completeCheckbox.checked = meal.completed || false;
+                completeCheckbox.addEventListener('change', handleMealCheckboxChange);
+                
+                const completeLabel = document.createElement('label');
+                completeLabel.htmlFor = `complete-${day.day}-${meal.type}`;
+                completeLabel.textContent = ' Mark as completed';
+                
+                completeContainer.appendChild(completeCheckbox);
+                completeContainer.appendChild(completeLabel);
+                mealElement.appendChild(completeContainer);
             }
+            
+            dayElement.appendChild(mealElement);
+        });
+        
+        mealPlanContent.appendChild(dayElement);
+        clientMealPlanContent.appendChild(dayElement.cloneNode(true));
+        
+        // Only show first 3 days in weekly view
+        if (weeklyMealPlan.children.length < 3) {
+            weeklyMealPlan.appendChild(dayElement.cloneNode(true));
+        }
+    });
+    
+    // Show meal plan display
+    document.getElementById('meal-plan-display').classList.remove('hidden');
+    
+    // Update today's meals
+    updateTodaysMeals();
+    
+    // Update feedback meal options
+    updateFeedbackMealOptions(mealPlan);
+}
+
+// Update feedback meal options
+function updateFeedbackMealOptions(mealPlan) {
+    const feedbackMealSelect = document.getElementById('feedback-meal');
+    feedbackMealSelect.innerHTML = '<option value="">Select a meal</option>';
+    
+    if (mealPlan && mealPlan.mealPlan) {
+        mealPlan.mealPlan.forEach(day => {
+            day.meals.forEach(meal => {
+                const option = document.createElement('option');
+                option.value = `${day.day}-${meal.type}`;
+                option.textContent = `${day.day} - ${meal.type.charAt(0).toUpperCase() + meal.type.slice(1)}: ${meal.name}`;
+                feedbackMealSelect.appendChild(option);
+            });
+        });
+    }
+} 
             
             // Create HTML for each day
             mealPlan.mealPlan.forEach(day => {
